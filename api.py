@@ -83,10 +83,11 @@ class SignUp(Resource):
         lines = shadow_file.readlines()
         shadow_file.close()
 
-        if (username in lines):
-            return True
-        else:
-            return False
+        for line in lines:
+            if (line.split(":")[0] == username):
+                return True
+        
+        return False
 
     def post(self):
         ''' Process POST request '''
