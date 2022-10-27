@@ -27,3 +27,7 @@ $ pip install -r requirements.txt
 ```
 
 ## Lanzamiento de pruebas automáticas
+
+
+Por si te da la neura de nuevo, por aqui dejo esto de los jwt en python xd
+https://realpython.com/token-based-authentication-with-flask/#database-setup
