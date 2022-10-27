@@ -2,7 +2,7 @@
 
 import uuid, os, hashlib
 from flask import jsonify, Flask, request
-from flask_restful import Resource, Api
+from flask_restful import Resource, Api, abort
 
 app = Flask(__name__)
 api = Api(app)
@@ -14,7 +14,7 @@ tokens_dict = {}
 ''' Global functions '''
 def generate_access_token():
     ''' Generate random token for a new user '''
-    return uuid.UUID(bytes=os.urandom(16), version=4)
+    return str(uuid.UUID(bytes=os.urandom(16), version=4))
 
 def encrypt_password(password):
     ''' Encrypt password using SHA256 algorithm'''
@@ -56,7 +56,8 @@ class Login(Resource):
                 tokens_dict[un] = token
                 return jsonify(access_token=token)
         else:
-            return "Error, user or password incorrect.", 401
+            abort(401, message="Error, user or password incorrect")
+            #return "Error, user or password incorrect.", 401
 
 class SignUp(Resource):
     ''' SignUp class '''
@@ -96,7 +97,8 @@ class SignUp(Resource):
         pw = json_data['password']
 
         if (self.check_username(un)):
-            return "Error, username " + un + " already exists.", 401
+            #return "Error, username " + un + " already exists.", 401
+            abort(401, message="Error, username {} already exists.".format(un))
         else:
             self.register_user(un, pw)
             self.create_directory(un)
@@ -105,9 +107,51 @@ class SignUp(Resource):
             tokens_dict[un] = token
             return jsonify(access_token=token)
 
+class User(Resource):
+    ''' User class '''
+    def check_authorization_header(self, user_id):
+        ''' Check if token is correct '''
+        auth_header = request.headers.get('Authorization')
+        token = auth_header.split(" ")[1]
+        
+        if user_id in tokens_dict:
+            if (tokens_dict[user_id] == token):
+                return True
+        
+        return False
+
+    def get(self, user_id, doc_id):
+        ''' Process GET request '''
+        if (self.check_authorization_header(user_id)):
+            return jsonify(user=user_id,doc=doc_id)
+        else:
+            abort(401, message="Token is not correct")
+    
+    def post(self, user_id, doc_id):
+        ''' Process POST request '''
+        if (self.check_authorization_header(user_id)):
+            return jsonify(user=user_id,doc=doc_id)
+        else:
+            abort(401, message="Token is not correct")
+    
+    def put(self, user_id, doc_id):
+        ''' Process PUT request '''
+        if (self.check_authorization_header(user_id)):
+            return jsonify(user=user_id,doc=doc_id)
+        else:
+            abort(401, message="Token is not correct")
+    
+    def delete(self, user_id, doc_id):
+        ''' Process DELETE request '''
+        if (self.check_authorization_header(user_id)):
+            return jsonify(user=user_id,doc=doc_id)
+        else:
+            abort(401, message="Token is not correct")
+
 api.add_resource(Version, '/version')
 api.add_resource(Login, '/login')
 api.add_resource(SignUp, '/signup')
+api.add_resource(User, '/<user_id>/<doc_id>')
 
 if __name__ == '__main__':
     app.run(debug=True)
