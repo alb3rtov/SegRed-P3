@@ -19,6 +19,14 @@ Para desactivar el virtual enviroment, ejecuta el siguiente comando:
 $ deactivate
 ```
 
+## Modificar archivo para resolución DNS
+
+Según el enunciado, debemos de acceder a la dirección `mylocal.server:5000` la cual se traduce en `127.0.0.1:5000`, por ello es necesario modificar el archivo **/etc/hosts** añadiendo una linea con la siguente información
+
+```
+127.0.0.1   mylocal.server
+```
+
 ## Requisitos
 En el caso de no utilizar el script `set-venv.sh`, será necesario instalar manualmente la librería de `flask-restful` para poder ejecutar el programa. Para ello se puede hacer uso del `requirements.txt` para instalarla.
 
