@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import uuid, os, hashlib
+import uuid, os, hashlib, json
 from flask import jsonify, Flask, request
 from flask_restful import Resource, Api, abort
 
@@ -123,28 +123,59 @@ class User(Resource):
     def get(self, user_id, doc_id):
         ''' Process GET request '''
         if (self.check_authorization_header(user_id)):
-            return jsonify(user=user_id,doc=doc_id)
+            json_file_name = user_id + "/" + doc_id + ".json"
+
+            with open(json_file_name) as json_file:
+                data = json.load(json_file) 
+
+            return data
         else:
             abort(401, message="Token is not correct")
     
     def post(self, user_id, doc_id):
         ''' Process POST request '''
         if (self.check_authorization_header(user_id)):
-            return jsonify(user=user_id,doc=doc_id)
+            json_data = request.get_json(force=True)
+            doc_content = json_data['doc_content']
+            json_file_name = user_id + "/" + doc_id + ".json"
+
+            json_string = json.dumps(doc_content)
+            with open(json_file_name, 'w') as outfile:
+                outfile.write(json_string)
+
+            file_size = os.stat(json_file_name)
+
+            return jsonify(size=file_size.st_size)
         else:
             abort(401, message="Token is not correct")
     
     def put(self, user_id, doc_id):
         ''' Process PUT request '''
         if (self.check_authorization_header(user_id)):
-            return jsonify(user=user_id,doc=doc_id)
+            # Delete json file
+            json_file_name = user_id + "/" + doc_id + ".json"
+            os.remove(json_file_name)
+            
+            # Create new json file
+            json_data = request.get_json(force=True)
+            doc_content = json_data['doc_content']
+
+            json_string = json.dumps(doc_content)
+            with open(json_file_name, 'w') as outfile:
+                outfile.write(json_string)
+
+            file_size = os.stat(json_file_name)
+
+            return jsonify(size=file_size.st_size)
         else:
             abort(401, message="Token is not correct")
     
     def delete(self, user_id, doc_id):
         ''' Process DELETE request '''
         if (self.check_authorization_header(user_id)):
-            return jsonify(user=user_id,doc=doc_id)
+            json_file_name = user_id + "/" + doc_id + ".json"
+            os.remove(json_file_name)
+            return "{}"
         else:
             abort(401, message="Token is not correct")
 
