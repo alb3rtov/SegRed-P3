@@ -36,6 +36,37 @@ $ pip install -r requirements.txt
 
 ## Lanzamiento de pruebas automáticas
 
+Para el lanzamiento de las pruebas automáticas es necesario tener instalado dos herramientas: **curl** y **jq**. Si no las tienes installadas puede utilizar el siguiente comando:
 
-Por si te da la neura de nuevo, por aqui dejo esto de los jwt en python xd
-https://realpython.com/token-based-authentication-with-flask/#database-setup
+```
+$ sudo apt-get install curl jq
+```
+
+Para lanzar cada uno de los scripts de prueba es necesario primero lanzar el servidor. Para ello, simplemente hay que ejecutar el script de python `main.py`.
+
+```
+$ python3 ./main.py
+```
+
+### Version
+```bash
+$ ./test_version.sh
+```
+### Login y signup
+```bash
+$ ./test_register_login.sh <user> <password>
+
+# Ejemplo
+$ ./test_register_login.sh alberto password
+```
+
+### Archivos JSON
+```bash
+$ ./test_user_actions.sh <user> <password> <doc_id>
+
+# Ejemplo
+$ ./test_user_actions.sh alberto password documento
+```
+
+<!-- Por si te da la neura de nuevo, por aqui dejo esto de los jwt en python xd
+https://realpython.com/token-based-authentication-with-flask/#database-setup -->
