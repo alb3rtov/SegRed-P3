@@ -68,5 +68,12 @@ $ ./test_user_actions.sh <user> <password> <doc_id>
 $ ./test_user_actions.sh alberto password documento
 ```
 
+### Listar todos los documentos de un usuario
+```bash
+$ ./test_all_docs.sh <user> <password>
+
+# Ejemplo
+$ ./test_all_docs.sh paulino paulino
+```
 <!-- Por si te da la neura de nuevo, por aqui dejo esto de los jwt en python xd
 https://realpython.com/token-based-authentication-with-flask/#database-setup -->
