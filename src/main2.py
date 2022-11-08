@@ -135,25 +135,25 @@ class User(Resource):
 
     def get(self, user_id, doc_id):
         ''' Process GET request '''
-        if os.path.exists(USERS_PATH+user_id+"/"+doc_id+".json"):
-            abort(401, message="The file does not exist")
-        else: 
-            if (check_authorization_header(user_id)):
+        
+        if check_authorization_header(user_id):
+            if os.path.exists(USERS_PATH+user_id+"/"+doc_id+".json"):
+                abort(401, message="The file does not exist")
+            else:
                 json_file_name = USERS_PATH + user_id + "/" + doc_id + ".json"
-
                 with open(json_file_name) as json_file:
                     data = json.load(json_file) 
 
                 return data
-            else:
-                abort(401, message="Token is not correct")
+        else:
+            abort(401, message="Token is not correct")
     
     def post(self, user_id, doc_id):
         ''' Process POST request '''
-        if os.path.exists(USERS_PATH+user_id+"/"+doc_id+".json"):
-            abort(401, message="The file already exists, use put to update")
-        else:
-            if (check_authorization_header(user_id)):
+        if (check_authorization_header(user_id)):
+            if os.path.exists(USERS_PATH+user_id+"/"+doc_id+".json"):
+                abort(401, message="The file already exists, use put to update")
+            else:
                 json_data = request.get_json(force=True)
                 doc_content = json_data['doc_content']
                 json_file_name = USERS_PATH + user_id + "/" + doc_id + ".json"
@@ -165,19 +165,20 @@ class User(Resource):
                 file_size = os.stat(json_file_name)
 
                 return jsonify(size=file_size.st_size)
-            else:
-                abort(401, message="Token is not correct")
+        else:
+            abort(401, message="Token is not correct")
     
     def put(self, user_id, doc_id):
         ''' Process PUT request '''
-        if os.path.exists(USERS_PATH+user_id+"/"+doc_id+".json"):
-            abort(401, message="The file already exists, use put to update")
-        else:
-            if (check_authorization_header(user_id)):
-                # Delete json file
+
+        if (check_authorization_header(user_id)):
+            # Delete json file
+            if not os.path.exists(USERS_PATH+user_id+"/"+doc_id+".json"):
+                abort(401, message="The file does not exists, use post to create")
+            else:
                 json_file_name = USERS_PATH + user_id + "/" + doc_id + ".json"
                 os.remove(json_file_name)
-                
+                    
                 # Create new json file
                 json_data = request.get_json(force=True)
                 doc_content = json_data['doc_content']
@@ -189,20 +190,21 @@ class User(Resource):
                 file_size = os.stat(json_file_name)
 
                 return jsonify(size=file_size.st_size)
-            else:
-                abort(401, message="Token is not correct")
+        else:
+            abort(401, message="Token is not correct")
     
     def delete(self, user_id, doc_id):
         ''' Process DELETE request '''
-        if os.path.exists(USERS_PATH+user_id+"/"+doc_id+".json"):
-            abort(401, message="The file already exists, use put to update")
-        else:
-            if (check_authorization_header(user_id)):
+
+        if (check_authorization_header(user_id)):
+            if os.path.exists(USERS_PATH+user_id+"/"+doc_id+".json"):
+                abort(401, message="The file does not exits")
+            else:
                 json_file_name = USERS_PATH + user_id + "/" + doc_id + ".json"
                 os.remove(json_file_name)
                 return "{}"
-            else:
-                abort(401, message="Token is not correct")
+        else:
+            abort(401, message="Token is not correct")
 
 class AllDocs(Resource):
 
@@ -226,5 +228,4 @@ api.add_resource(User, '/<user_id>/<doc_id>')
 api.add_resource(AllDocs, '/<user_id>/_all_docs')
 
 if __name__ == '__main__':
-    app.run(ssl_context='adhoc',debug=True)
-
+    app.run(debug=True, ssl_context=('cert.pem', 'key.pem'))
