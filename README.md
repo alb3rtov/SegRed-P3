@@ -5,6 +5,14 @@ Alberto Vázquez Martínez - Alberto.Vazquez1@alu.uclm.es
 
 Paulino de la Fuente Lizcano - Paulino.Lafuente@alu.uclm.es
 
+## Certificados
+
+Para utilizar el protocolo https, es necesario copiar el archivo **cert.perm** a la ruta *usr/local/share/ca-certificates*, una vez ahí, se debe modificar el nombre a **cert.crt** y actualizar la lista de certificados para que la herramienta curl reconozca el certificado 
+
+```
+$ sudo update-ca-certificates perm.crt
+```
+
 ## Configurar virtual enviroment
 Para configurar automaticamente un virtual enviroment donde instalar las librerías necesarias, simplemente ejecuta el script `set-venv.sh` de la siguiente manera:
 
