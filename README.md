@@ -10,7 +10,7 @@ Paulino de la Fuente Lizcano - Paulino.Lafuente@alu.uclm.es
 Para utilizar el protocolo https, es necesario copiar el archivo **cert.perm** a la ruta *usr/local/share/ca-certificates*, una vez ahí, se debe modificar el nombre a **cert.crt** y actualizar la lista de certificados para que la herramienta curl reconozca el certificado 
 
 ```
-$ sudo update-ca-certificates perm.crt
+$ sudo update-ca-certificates cert.crt
 ```
 
 ## Configurar virtual enviroment
