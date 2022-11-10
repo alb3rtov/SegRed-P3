@@ -1,6 +1,6 @@
 #!/bin/bash
 
-server="https://mylocal.server:5000"
+server="https://myserver.local:5000"
 curl_options="-s -k"
 
 if [ -z "$1" ] || [ -z "$2" ]; then
