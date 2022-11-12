@@ -1,7 +1,7 @@
 #!/bin/bash
 
 server="https://myserver.local:5000"
-curl_options="-s -k"
+curl_options="-s"
 
 if [ -z "$1" ] || [ -z "$2" ]; then
     echo -ne "Usage: ./test_register_login.sh <user> <password>"
@@ -49,4 +49,4 @@ read press_enter
 login=$(curl $curl_options $server/login -d '{"username":"'$1'","password":"'$2'"}' -X POST)
 output=$(echo $login | jq .access_token 2> /dev/null)
 
-echo -ne "Server response -> Access token: $output"
+echo -ne "Server response -> Access token: $output\n"
