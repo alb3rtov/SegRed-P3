@@ -2,6 +2,8 @@
 
 i=0
 
+server="https://myserver.local:5000"
+
 if [ -z "$1" ] || [ -z "$2" ]; then
     echo -ne "Usage: ./test_register_login.sh <user> <password>\n"
     exit 1
@@ -11,16 +13,20 @@ fi
 echo -ne "\nGetting token access, press enter to continue..."
 read press_enter
 
-token=$(curl -s http://myserver.local:5000/login -d '{"username":"'$1'","password":"'$2'"}' -X POST | jq -r .access_token)
+token=$(curl -s $server/login -d '{"username":"'$1'","password":"'$2'"}' -X POST | jq -r .access_token)
 echo $token
 
+if [[ $token == 'null' ]]; then
+    echo "Error in user or password"
+    exit 1
+fi
 
-echo -ne "\nCreating new json file, press enter to continue..."
+echo -ne "\nCreating new json files with name from 0 to 4, press enter to continue..."
 read press_enter
 
 while [ $i -lt 5 ]
 do
-    curl http://myserver.local:5000/$1/$i -H "Authorization: token $token" -d '{"doc_content": {"fruit": "Apple", "size": "Large", "color": "Red"}}' -X POST
+    curl $server/$1/$i -H "Authorization: token $token" -d '{"doc_content": {"fruit": "Apple", "size": "Large", "color": "Red"}}' -X POST
     ((i++))
 done
 
@@ -29,4 +35,4 @@ done
 echo -ne "\nGetting content of json file, press enter to continue..."
 read press_enter
 
-curl http://127.0.0.1:5000/$1/_all_docs -H "Authorization: token $token"
+curl $server/$1/_all_docs -H "Authorization: token $token"
