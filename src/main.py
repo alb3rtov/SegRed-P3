@@ -3,20 +3,38 @@
 import uuid, os, hashlib, json
 from flask import jsonify, Flask, request
 from flask_restful import Resource, Api, abort
-from time import ctime
+from time import ctime, strftime
+from datetime import datetime, timedelta
 
 app = Flask(__name__)
 api = Api(app)
+app.config['SECRET_KEY'] = 'SegRed-P3'
 
 ''' Global variables '''
 __version__ = 'v0.0.1-alpha'
 USERS_PATH = "users/"
-tokens_dict = {}
+TOKENS_DICT = {}
+EXP_TOKEN = {}
+MINUTES = 5
 
 ''' Global functions '''
+def check_shadow():
+    try:
+        shadow_file = open('.shadow', 'r')
+        return shadow_file
+    except FileNotFoundError:
+        os.system("touch .shadow")
+        shadow_file = open('.shadow', 'r')
+        return shadow_file
+
+
 def generate_access_token():
     ''' Generate random token for a new user '''
-    return str(uuid.UUID(bytes=os.urandom(16), version=4))
+    
+    exp = (datetime.now() + timedelta(minutes=1)).strftime('%H:%M')
+    token = str(uuid.UUID(bytes=os.urandom(16), version=4))
+    EXP_TOKEN[token] = exp
+    return token
 
 def encrypt_password(salt, password):
     ''' Encrypt password using SHA256 algorithm'''
@@ -27,10 +45,13 @@ def check_authorization_header(user_id):
     auth_header = request.headers.get('Authorization')
     token = auth_header.split(" ")[1]
         
-    if user_id in tokens_dict:
-        if (tokens_dict[user_id] == token):
+    if token in EXP_TOKEN:
+        if (datetime.strptime(EXP_TOKEN[token], '%H:%M') > datetime.strptime(datetime.now().strftime('%H,%M'),'%H,%M')):
             return True
-        
+        else:
+            del(EXP_TOKEN[token])
+            del(TOKENS_DICT[user_id])
+            
     return False
 
 
@@ -45,7 +66,8 @@ class Login(Resource):
     ''' Login class '''
     def check_credentials(self, username, password):
         ''' Check if credentials are correct '''
-        shadow_file = open('.shadow', 'r')
+        
+        shadow_file = check_shadow()
         lines = shadow_file.readlines()
         shadow_file.close()
         
@@ -64,11 +86,15 @@ class Login(Resource):
         pw = json_data['password']
 
         if (self.check_credentials(un,pw)):
-            if un in tokens_dict:
-                return jsonify(access_token=tokens_dict[un])
+            if token in EXP_TOKEN:
+                if (datetime.strptime(EXP_TOKEN[token], '%H:%M') > datetime.strptime(datetime.now().strftime('%H,%M'),'%H,%M')):
+                    return jsonify(access_token=TOKENS_DICT[un])
+                else:
+                    del(EXP_TOKEN[token])
+                    del(TOKENS_DICT[un])
             else:
                 token = generate_access_token()
-                tokens_dict[un] = token
+                TOKENS_DICT[un] = token
                 return jsonify(access_token=token)
         else:
             abort(401, message="Error, user or password incorrect")
@@ -83,7 +109,6 @@ class SignUp(Resource):
 
     def register_user(self, username, password):
         ''' Register new user in shadow file '''
-        
         shadow_file = open('.shadow', 'a')
         credentials = ""
         time = str(ctime())
@@ -99,11 +124,7 @@ class SignUp(Resource):
     ''' Check if username already exists '''
     def check_username(self, username):
 
-        if not os.path.exists('.shadow'):
-            print("Creating shadow file...")
-            os.system("touch .shadow")
-        
-        shadow_file = open('.shadow', 'r')
+        shadow_file = check_shadow()
         lines = shadow_file.readlines()
         shadow_file.close()
 
@@ -127,7 +148,7 @@ class SignUp(Resource):
             self.create_directory(un)
 
             token = generate_access_token();
-            tokens_dict[un] = token
+            TOKENS_DICT[un] = token
             return jsonify(access_token=token)
 
 class User(Resource):
@@ -137,7 +158,7 @@ class User(Resource):
         ''' Process GET request '''
         
         if check_authorization_header(user_id):
-            if os.path.exists(USERS_PATH+user_id+"/"+doc_id+".json"):
+            if not os.path.exists(USERS_PATH+user_id+"/"+doc_id+".json"):
                 abort(401, message="The file does not exist")
             else:
                 json_file_name = USERS_PATH + user_id + "/" + doc_id + ".json"
@@ -174,7 +195,7 @@ class User(Resource):
         if (check_authorization_header(user_id)):
             # Delete json file
             if not os.path.exists(USERS_PATH+user_id+"/"+doc_id+".json"):
-                abort(401, message="The file does not exists, use post to create")
+                abort(401, message="The file does not exists")
             else:
                 json_file_name = USERS_PATH + user_id + "/" + doc_id + ".json"
                 os.remove(json_file_name)
@@ -197,7 +218,7 @@ class User(Resource):
         ''' Process DELETE request '''
 
         if (check_authorization_header(user_id)):
-            if os.path.exists(USERS_PATH+user_id+"/"+doc_id+".json"):
+            if not os.path.exists(USERS_PATH+user_id+"/"+doc_id+".json"):
                 abort(401, message="The file does not exits")
             else:
                 json_file_name = USERS_PATH + user_id + "/" + doc_id + ".json"
@@ -228,4 +249,5 @@ api.add_resource(User, '/<user_id>/<doc_id>')
 api.add_resource(AllDocs, '/<user_id>/_all_docs')
 
 if __name__ == '__main__':
+    
     app.run(debug=True, ssl_context=('cert.pem', 'key.pem'))
