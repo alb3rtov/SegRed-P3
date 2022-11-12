@@ -53,7 +53,7 @@ $ sudo apt-get install curl jq
 Para lanzar cada uno de los scripts de prueba es necesario primero lanzar el servidor. Para ello, simplemente hay que ejecutar el script de python `main.py`.
 
 ```
-$ python3 ./main.py
+$ python ./main.py
 ```
 
 ### Version
