@@ -16,10 +16,10 @@ usuario:salt:hash
 ```
 
 A su vez, se utilizan tokens para validar las acciones de dichos usuarios, dichas acciones son:
-    1. GET sobre un archivo
-    2. POST de un archivo
-    3. PUT de un archivo existente
-    4. DELETE un archivo
+1. **GET** sobre un archivo
+2. **POST** de un archivo
+3. **PUT** de un archivo existente
+4. **DELETE** un archivo
 
 Los tokens tienen un tiempo de uso, por defecto están configurados para que duren 5 minutos, en el caso de que se desee modificar el tiempo de vida del token, tan solo hay que modificar la varibale global **MINUTES**
 
