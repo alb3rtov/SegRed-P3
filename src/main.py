@@ -21,7 +21,7 @@ MINUTES = 5
 def check_directories():
     ''' Check if users directory and shadow file '''
     if not os.path.isdir(USERS_PATH):
-        os.system("mkdir " + USERS_PATH)
+        os.mkdir(USERS_PATH)
     try:
         shadow_file = open('.shadow', 'r')
         shadow_file.close()
@@ -50,11 +50,12 @@ def check_authorization_header(user_id):
     token = header[1]
         
     if token in EXP_TOKEN:
-        if (datetime.strptime(EXP_TOKEN[token], '%H:%M') > datetime.strptime(datetime.now().strftime('%H,%M'),'%H,%M')):
-            return True
-        else:
-            del(EXP_TOKEN[token])
-            del(TOKENS_DICT[user_id])
+        if TOKENS_DICT[user_id]==token:
+            if (datetime.strptime(EXP_TOKEN[token], '%H:%M') > datetime.strptime(datetime.now().strftime('%H,%M'),'%H,%M')):
+                return True
+            else:
+                del(EXP_TOKEN[token])
+                del(TOKENS_DICT[user_id])
             
     return False
 
@@ -88,15 +89,16 @@ class Login(Resource):
             pw = json_data['password']
         except KeyError:
             abort(400, message="Arguments must be 'username' and 'password'")
-
+        #Comprobamos si el usuario esta registrado
         if (self.check_credentials(un,pw)):
+            #Probamos si tiene un token asociado, si no se genera
             try:
                 token = TOKENS_DICT[un]
             except KeyError:
                 token = generate_access_token()
                 TOKENS_DICT[un] = token
                 return jsonify(access_token=token)
-
+            #Si lo tiene, comprobamos su fecha de caducidad, si ha expirado, los eliminamos de ambos json y generamos unos nuevos
             if token in EXP_TOKEN:
                 if (datetime.strptime(EXP_TOKEN[token], '%H:%M') > datetime.strptime(datetime.now().strftime('%H,%M'),'%H,%M')):
                     return jsonify(access_token=TOKENS_DICT[un])
@@ -114,7 +116,7 @@ class SignUp(Resource):
     def create_directory(self, username):
         ''' Create directory of user if does not exists '''
         if not os.path.isdir(USERS_PATH + username):
-            os.system("mkdir " + USERS_PATH + username)
+            os.mkdir(USERS_PATH + username)
 
     def register_user(self, username, password):
         ''' Register new user in shadow file '''
