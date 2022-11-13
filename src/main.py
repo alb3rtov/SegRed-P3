@@ -15,23 +15,23 @@ __version__ = 'v0.0.1-alpha'
 USERS_PATH = "users/"
 TOKENS_DICT = {}
 EXP_TOKEN = {}
-MINUTES = 5
+MINUTES = 1
 
 ''' Global functions '''
-def check_shadow():
+def check_directories():
+    if not os.path.isdir(USERS_PATH):
+        os.system("mkdir " + USERS_PATH)
     try:
         shadow_file = open('.shadow', 'r')
-        return shadow_file
+        shadow_file.close()
     except FileNotFoundError:
         os.system("touch .shadow")
-        shadow_file = open('.shadow', 'r')
-        return shadow_file
 
 
 def generate_access_token():
     ''' Generate random token for a new user '''
     
-    exp = (datetime.now() + timedelta(minutes=1)).strftime('%H:%M')
+    exp = (datetime.now() + timedelta(minutes=MINUTES)).strftime('%H:%M')
     token = str(uuid.UUID(bytes=os.urandom(16), version=4))
     EXP_TOKEN[token] = exp
     return token
@@ -67,14 +67,12 @@ class Login(Resource):
     def check_credentials(self, username, password):
         ''' Check if credentials are correct '''
         
-        shadow_file = check_shadow()
+        shadow_file = open('.shadow', 'r')
         lines = shadow_file.readlines()
         shadow_file.close()
         
         for line in lines:
             credentials = line.split(":")
-            #print("Pass: ",credentials[2])
-            #print("Trying: ",encrypt_password(credentials[1].strip(),password))
             if (credentials[0] == username and credentials[2].strip() == encrypt_password(credentials[1],password)):
                 return True
         return False
@@ -86,16 +84,22 @@ class Login(Resource):
         pw = json_data['password']
 
         if (self.check_credentials(un,pw)):
+            try:
+                token = TOKENS_DICT[un]
+            except KeyError:
+                token = generate_access_token()
+                TOKENS_DICT[un] = token
+                return jsonify(access_token=token)
+
             if token in EXP_TOKEN:
                 if (datetime.strptime(EXP_TOKEN[token], '%H:%M') > datetime.strptime(datetime.now().strftime('%H,%M'),'%H,%M')):
                     return jsonify(access_token=TOKENS_DICT[un])
                 else:
                     del(EXP_TOKEN[token])
                     del(TOKENS_DICT[un])
-            else:
-                token = generate_access_token()
-                TOKENS_DICT[un] = token
-                return jsonify(access_token=token)
+                    token = generate_access_token()
+                    TOKENS_DICT[un] = token
+                    return jsonify(access_token=token)
         else:
             abort(401, message="Error, user or password incorrect")
             #return "Error, user or password incorrect.", 401
@@ -124,7 +128,7 @@ class SignUp(Resource):
     ''' Check if username already exists '''
     def check_username(self, username):
 
-        shadow_file = check_shadow()
+        shadow_file = open('.shadow', 'r')
         lines = shadow_file.readlines()
         shadow_file.close()
 
@@ -137,18 +141,18 @@ class SignUp(Resource):
     def post(self):
         ''' Process POST request '''
         json_data = request.get_json(force=True)
-        un = json_data['username']
-        pw = json_data['password']
+        username = json_data['username']
+        password = json_data['password']
 
-        if (self.check_username(un)):
+        if (self.check_username(username)):
             #return "Error, username " + un + " already exists.", 401
-            abort(401, message="Error, username {} already exists.".format(un))
+            abort(401, message="Error, username {} already exists.".format(username))
         else:
-            self.register_user(un, pw)
-            self.create_directory(un)
+            self.register_user(username, password)
+            self.create_directory(username)
 
             token = generate_access_token();
-            TOKENS_DICT[un] = token
+            TOKENS_DICT[username] = token
             return jsonify(access_token=token)
 
 class User(Resource):
@@ -249,5 +253,6 @@ api.add_resource(User, '/<user_id>/<doc_id>')
 api.add_resource(AllDocs, '/<user_id>/_all_docs')
 
 if __name__ == '__main__':
-    
+    check_directories()
     app.run(debug=True, ssl_context=('cert.pem', 'key.pem'))
+
