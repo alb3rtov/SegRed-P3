@@ -27,12 +27,6 @@ Para la gestión de los tokens, hemos decidio usar 2 diccionarios llamados *TOKE
 
 Para comunicarse con el servidor, es necesario utilizar el protocolo HTTPS, ya que si se usa el protocolo HTTP es denegado.
 
-## Aspectos a mejorar
-
-Es posible que si el programa es usado por muchos usuarios, sea necesario el limitar el espacio que estos pueden usar, si no, un usuario podria subir archivos muy pesados provocando que el disco se llene unicamente con archivos de un usuario.
-
-Aparte, para evitar un ataque de fuerza bruta, seria necesario bloquear el numero de intentos de login, si no, es posible que si la contraseña de un usuario no es lo suficientemente robusta.
-
 ## Certificados
 
 Para utilizar el protocolo https, es necesario copiar el archivo **cert.perm** a la ruta *usr/local/share/ca-certificates*, una vez ahí, se debe modificar el nombre a **cert.crt** y actualizar la lista de certificados para que la herramienta curl reconozca el certificado 
@@ -75,7 +69,13 @@ $ pip install -r requirements.txt
 
 Para la generación del token de autenticación de usuarios hemos optado por utilizar `UUIDs` (versión 4), ya que son identificadores únicos universales y así nos aseguramos de que el token no se repita para otro usuario. 
 
-Cuando generamos un token, almacenamos la hora de creación del token para así poder comprobar si ha caducado o no. 
+Cuando generamos un token, almacenamos la hora de creación del token para así poder comprobar si ha caducado o no.
+
+## Aspectos a mejorar
+
+Es posible que si el programa es usado por muchos usuarios, sea necesario el limitar el espacio que estos pueden usar, si no, un usuario podria subir archivos muy pesados provocando que el disco se llene unicamente con archivos de un usuario.
+
+Aparte, para evitar un ataque de fuerza bruta, seria necesario bloquear el numero de intentos de login, si no, es posible que si la contraseña de un usuario no es lo suficientemente robusta.
 
 ## Lanzamiento de pruebas automáticas
 
