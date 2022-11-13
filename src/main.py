@@ -161,7 +161,7 @@ class SignUp(Resource):
             abort(400, message="Arguments must be 'username' and 'password'")
 
         if (self.check_username(username)):
-            abort(401, message="Error, username {} already exists.".format(username))
+            abort(409, message="Error, username {} already exists.".format(username))
         else:
             self.register_user(username, password)
             self.create_directory(username)
