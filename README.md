@@ -4,13 +4,13 @@
 Alberto Vázquez Martínez - Alberto.Vazquez1@alu.uclm.es
 
 Paulino de la Fuente Lizcano - Paulino.Lafuente@alu.uclm.es
-
+ 
 ## Certificados
 
 Para utilizar el protocolo https, es necesario copiar el archivo **cert.perm** a la ruta *usr/local/share/ca-certificates*, una vez ahí, se debe modificar el nombre a **cert.crt** y actualizar la lista de certificados para que la herramienta curl reconozca el certificado 
 
 ```
-$ sudo update-ca-certificates cert.crt
+$ sudo update-ca-certificates perm.crt
 ```
 
 ## Configurar virtual enviroment
@@ -29,10 +29,10 @@ $ deactivate
 
 ## Modificar archivo para resolución DNS
 
-Según el enunciado, debemos de acceder a la dirección `mylocal.server:5000` la cual se traduce en `127.0.0.1:5000`, por ello es necesario modificar el archivo **/etc/hosts** añadiendo una linea con la siguente información
+Según el enunciado, debemos de acceder a la dirección `myserver.local:5000` la cual se traduce en `127.0.0.1:5000`, por ello es necesario modificar el archivo **/etc/hosts** añadiendo una linea con la siguente información
 
 ```
-127.0.0.1   mylocal.server
+127.0.0.1   myserver.local
 ```
 
 ## Requisitos
@@ -53,7 +53,14 @@ $ sudo apt-get install curl jq
 Para lanzar cada uno de los scripts de prueba es necesario primero lanzar el servidor. Para ello, simplemente hay que ejecutar el script de python `main.py`.
 
 ```
-$ python ./main.py
+$ python3 ./main.py
+```
+
+ Tambien será necesario dar permisos de ejecución a los archivos **.sh** almacenados en el directorio */test*
+
+
+```
+$ chmod +x *.sh
 ```
 
 ### Version
@@ -83,5 +90,3 @@ $ ./test_all_docs.sh <user> <password>
 # Ejemplo
 $ ./test_all_docs.sh paulino paulino
 ```
-<!-- Por si te da la neura de nuevo, por aqui dejo esto de los jwt en python xd
-https://realpython.com/token-based-authentication-with-flask/#database-setup -->
