@@ -42,6 +42,11 @@ En el caso de no utilizar el script `set-venv.sh`, será necesario instalar manu
 $ pip install -r requirements.txt
 ```
 
+## Generación de token de autenticación
+Para la generación del token de autenticación de usuarios hemos optado por utilizar `UUIDs` (versión 4), ya que son identificadores únicos universales y así nos aseguramos de que el token no se repita para otro usuario. 
+
+Cuando generamos un token, almacenamos la hora de creación del token para así poder comprobar si ha caducado o no. 
+
 ## Lanzamiento de pruebas automáticas
 
 Para el lanzamiento de las pruebas automáticas es necesario tener instalado dos herramientas: **curl** y **jq**. Si no las tienes installadas puede utilizar el siguiente comando:
