@@ -50,13 +50,16 @@ def check_authorization_header(user_id):
     token = header[1]
         
     if token in EXP_TOKEN:
-        if TOKENS_DICT[user_id]==token:
-            if (datetime.strptime(EXP_TOKEN[token], '%H:%M') > datetime.strptime(datetime.now().strftime('%H,%M'),'%H,%M')):
-                return True
-            else:
-                del(EXP_TOKEN[token])
-                del(TOKENS_DICT[user_id])
-            
+        try:
+            if TOKENS_DICT[user_id]==token:
+                if (datetime.strptime(EXP_TOKEN[token], '%H:%M') > datetime.strptime(datetime.now().strftime('%H,%M'),'%H,%M')):
+                    return True
+                else:
+                    del(EXP_TOKEN[token])
+                    del(TOKENS_DICT[user_id])
+        except KeyError:
+            abort(404, message="The user " + user_id + " is not registered in the system")
+
     return False
 
 ''' Classes '''
@@ -116,7 +119,10 @@ class SignUp(Resource):
     def create_directory(self, username):
         ''' Create directory of user if does not exists '''
         if not os.path.isdir(USERS_PATH + username):
-            os.mkdir(USERS_PATH + username)
+            try:
+                os.mkdir(USERS_PATH + username)
+            except Exception:
+                abort(400, message="Error creating username space")
 
     def register_user(self, username, password):
         ''' Register new user in shadow file '''
