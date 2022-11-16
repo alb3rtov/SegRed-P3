@@ -8,7 +8,7 @@ Paulino de la Fuente Lizcano - Paulino.Lafuente@alu.uclm.es
 
 ## Explicación
 
-Este proyecto simula unn servidor online donde cada usuario tiene su espacio para poder subir archivos en formato ***.json**,
+Este proyecto simula un servicio de almacenamiento online donde se pueden registrar diferentes usuarios, cada usuario tiene su espacio para poder subir archivos en formato ***.json**,
 se dispone de un archivo llamado **.shadow** simulando el comportamiento de un entorno linux, donde se almacena el nombre de usuario, seguido de un codigo utilizado para generar el hash de la contraseña y la misma.
 
 ```
