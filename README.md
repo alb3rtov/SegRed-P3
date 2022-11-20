@@ -1,12 +1,24 @@
 # Práctica 3 - Seguridad en Redes
 
-https://github.com/alb3rtov/SegRed-P3
+URL del proyecto: https://github.com/alb3rtov/SegRed-P3
+
+# Contenido
+
+- [Integrantes](#1-integrantes)
+- [Explicación](#2-explicación)
+- [Generación de token de autenticación](#3-generación-de-token-de-autenticación)
+- [Aspectos a mejorar](#4-aspectos-a-mejorar)
+- [Set up del entorno para ejecutar el script](#5-set-up-del-entorno-para-ejecutar-el-script)
+    - [Certificados](#51-certificados)
+    - [Modificar archivo para resolución DNS](#52-modificar-archivo-para-resolución-dns)
+    - [Configurar virtual enviroment](#53-configurar-virtual-enviroment)
+    - [Requisitos](#54-requisitos)
+- [Lanzamiento de pruebas automáticas](#6-lanzamiento-de-pruebas-automáticas)
 
 ## 1-Integrantes
 
-Alberto Vázquez Martínez - Alberto.Vazquez1@alu.uclm.es
-
-Paulino de la Fuente Lizcano - Paulino.Lafuente@alu.uclm.es
+- Alberto Vázquez Martínez - Alberto.Vazquez1@alu.uclm.es
+- Paulino de la Fuente Lizcano - Paulino.Lafuente@alu.uclm.es
 
 ## 2-Explicación
 
@@ -43,7 +55,7 @@ Es posible que si el programa es usado por muchos usuarios, sea necesario el lim
 
 Aparte, para evitar un ataque de fuerza bruta, seria necesario bloquear el numero de intentos de login, si no, es posible que si la contraseña de un usuario no es lo suficientemente robusta.
 
-## 5-*Set up del entorno para ejecutar el script*
+## 5-Set up del entorno para ejecutar el script
 
 ### 5.1-Certificados
 
