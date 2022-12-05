@@ -5,6 +5,7 @@ from flask import jsonify, Flask, request
 from flask_restful import Resource, Api, abort
 from time import ctime
 from datetime import datetime, timedelta
+import jwt
 
 app = Flask(__name__)
 api = Api(app)
@@ -14,10 +15,35 @@ app.config['SECRET_KEY'] = 'SegRed-P3'
 __version__ = 'v0.0.1-alpha'
 USERS_PATH = "users/"
 TOKENS_DICT = {}
-EXP_TOKEN = {}
-MINUTES = 5
+MINUTES = 1
+
+KEY = "195DAED626537B32D3CC7CE988ADDE5F4A000F36D13473B7D46C4E53E57F8E61"
 
 ''' Global functions '''
+
+def verify_token(username, token):
+        
+        try:
+            payload = jwt.decode(token, KEY, algorithms=['HS256'])
+            exp = datetime.fromtimestamp(payload['exp'])
+
+            if exp < datetime.utcnow():
+                print('Token expired')
+                raise jwt.ExpiredSignatureError
+
+            if payload['username'] != username:
+                print('Usuario no coincide con el token')
+                raise jwt.InvalidTokenError
+            
+            return True
+        
+        except jwt.ExpiredSignatureError:
+            return False
+        
+        except jwt.InvalidTokenError:
+            return False
+
+
 def check_directories():
     ''' Check if users directory and shadow file '''
     if not os.path.isdir(USERS_PATH):
@@ -28,11 +54,11 @@ def check_directories():
     except FileNotFoundError:
         os.system("touch .shadow")
 
-def generate_access_token():
+def generate_access_token(username):
     ''' Generate random token for a new user '''
-    exp = (datetime.now() + timedelta(minutes=MINUTES)).strftime('%H:%M')
-    token = str(uuid.UUID(bytes=os.urandom(16), version=4))
-    EXP_TOKEN[token] = exp
+    exp = datetime.utcnow() + timedelta(minutes=MINUTES)
+    token = jwt.encode({'username': username, 'exp': exp},KEY, algorithm='HS256')
+    
     return token
 
 def encrypt_password(salt, password):
@@ -49,18 +75,11 @@ def check_authorization_header(user_id):
 
     token = header[1]
         
-    if token in EXP_TOKEN:
-        try:
-            if TOKENS_DICT[user_id]==token:
-                if (datetime.strptime(EXP_TOKEN[token], '%H:%M') > datetime.strptime(datetime.now().strftime('%H,%M'),'%H,%M')):
-                    return True
-                else:
-                    del(EXP_TOKEN[token])
-                    del(TOKENS_DICT[user_id])
-        except KeyError:
-            abort(404, message="The user " + user_id + " is not registered in the system")
+    if verify_token(user_id, token):
+        return True
 
-    return False
+    else:
+        abort(404, message="The user " + user_id + " is not registered in the system")
 
 ''' Classes '''
 class Version(Resource):
@@ -83,8 +102,8 @@ class SignUp(Resource):
         ''' Register new user in shadow file '''
         shadow_file = open('.shadow', 'a')
         credentials = ""
-        time = str(ctime())
-        salt = time.replace(':','/')
+
+        salt = str(uuid.uuid4())
         
         if (os.stat(".shadow").st_size != 0):
             credentials = "\n"
@@ -109,9 +128,11 @@ class SignUp(Resource):
     def post(self):
         ''' Process POST request '''
         try:
-            json_data = request.get_json(force=True)            
+            json_data = request.get_json(force=True)
+
             username = json_data['username']
             password = json_data['password']
+
         except KeyError:
             abort(400, message="Arguments must be 'username' and 'password'")
         except:
@@ -123,9 +144,9 @@ class SignUp(Resource):
                 self.register_user(username, password)
                 self.create_directory(username)
 
-                token = generate_access_token()
+                token = generate_access_token(username)
                 TOKENS_DICT[username] = token
-                return jsonify(access_token=token)
+                return jsonify(token)
 
 class Login(Resource):
     ''' Login class '''
@@ -146,32 +167,30 @@ class Login(Resource):
         ''' Process POST request '''
         try:
             json_data = request.get_json(force=True)            
-            un = json_data['username']
-            pw = json_data['password']
+            username = json_data['username']
+            password = json_data['password']
         except KeyError:
             abort(400, message="Arguments must be 'username' and 'password'")
         except:
             abort(400, message="Wrong format of the file")
         else:
         #Comprobamos si el usuario esta registrado
-            if (self.check_credentials(un,pw)):
+            if (self.check_credentials(username,password)):
                 #Probamos si tiene un token asociado, si no se genera
                 try:
-                    token = TOKENS_DICT[un]
+                    token = TOKENS_DICT[username]
                 except KeyError:
-                    token = generate_access_token()
-                    TOKENS_DICT[un] = token
+                    token = generate_access_token(username)
+                    TOKENS_DICT[username] = token
                     return jsonify(access_token=token)
                 #Si lo tiene, comprobamos su fecha de caducidad, si ha expirado, los eliminamos de ambos json y generamos unos nuevos
-                if token in EXP_TOKEN:
-                    if (datetime.strptime(EXP_TOKEN[token], '%H:%M') > datetime.strptime(datetime.now().strftime('%H,%M'),'%H,%M')):
-                        return jsonify(access_token=TOKENS_DICT[un])
-                    else:
-                        del(EXP_TOKEN[token])
-                        del(TOKENS_DICT[un])
-                        token = generate_access_token()
-                        TOKENS_DICT[un] = token
-                        return jsonify(access_token=token)
+                if verify_token(username, token):
+                    return jsonify(access_token=TOKENS_DICT[username])
+                else:
+                    del(TOKENS_DICT[username])
+                    token = generate_access_token(username)
+                    TOKENS_DICT[username] = token
+                    return jsonify(access_token=token)
             else:
                 abort(401, message="Error, user or password incorrect")
 
@@ -266,7 +285,7 @@ class AllDocs(Resource):
             path = os.listdir(USERS_PATH + user_id)
             for files in path:
                 with open(USERS_PATH + user_id+"/"+files) as content:
-                    all_docks[files] = json.load(content)
+                    all_docks[files.strip(".json")] = json.load(content)
             return jsonify(all_docks)
         else :
             abort(401, message="Token is not correct")
